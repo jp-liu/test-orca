@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
-import { press, initial } from './calc.js'
+import { useEffect, useRef, useState } from 'react'
+import { press, initial, ERROR } from './calc.js'
+import { addEntry, stripOp, loadHistory, saveHistory } from './history.js'
 
 const BUTTONS = [
   ['C', 'C'], ['⌫', 'back'], ['÷', '÷'], ['×', '×'],
@@ -11,8 +12,29 @@ const BUTTONS = [
 
 const KEYMAP = { '*': '×', '/': '÷', Enter: '=', Backspace: 'back', Escape: 'C', c: 'C', C: 'C' }
 
+const fmt = (t) => t.replace(/-/g, '−')
+
 export default function App() {
   const [state, setState] = useState(initial)
+  const [history, setHistory] = useState(loadHistory)
+  const prevRef = useRef(state)
+
+  // 在 effect 里比较前后状态追加记录，避免 updater 副作用（StrictMode 会执行两次）
+  useEffect(() => {
+    const prev = prevRef.current
+    prevRef.current = state
+    if (!prev.done && state.done && state.expr !== ERROR) {
+      setHistory((h) => addEntry(h, stripOp(prev.expr), state.expr))
+    }
+  }, [state])
+
+  useEffect(() => saveHistory(history), [history])
+
+  const recall = (result) => {
+    const next = { expr: result, done: true }
+    prevRef.current = next // 填回结果不算一次计算
+    setState(next)
+  }
 
   useEffect(() => {
     const onKey = (e) => {
@@ -27,7 +49,7 @@ export default function App() {
 
   return (
     <div className="calc">
-      <div className="display">{state.expr.replace(/-/g, '−') || '0'}</div>
+      <div className="display">{fmt(state.expr) || '0'}</div>
       <div className="keys">
         {BUTTONS.map(([label, key]) => (
           <button key={key} className={`k-${key === '=' ? 'eq' : key === '0' ? 'zero' : 'n'}`} onClick={() => setState((s) => press(s, key))}>
@@ -35,6 +57,21 @@ export default function App() {
           </button>
         ))}
       </div>
+      {history.length > 0 && (
+        <div className="history">
+          <div className="history-head">
+            <span>历史</span>
+            <button onClick={() => setHistory([])}>清空历史</button>
+          </div>
+          <ul>
+            {history.map((e, i) => (
+              <li key={i} onClick={() => recall(e.result)}>
+                {fmt(e.expr)} = {fmt(e.result)}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   )
 }

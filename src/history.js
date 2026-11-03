@@ -7,6 +7,9 @@ export const addEntry = (list, expr, result) => [{ expr, result }, ...list].slic
 // 去掉末尾多余运算符，与 calc.js 的 = 分支一致
 export const stripOp = (expr) => ('+-×÷'.includes(expr.at(-1)) ? expr.slice(0, -1) : expr)
 
+// 式子是否真的含运算；首位负号属于数字本身，不算运算符
+export const hasOp = (expr) => /[+\-×÷]/.test(expr.slice(1))
+
 export function parseHistory(raw) {
   try {
     const list = JSON.parse(raw)

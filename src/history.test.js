@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { addEntry, stripOp, parseHistory, loadHistory, saveHistory, MAX, KEY } from './history.js'
+import { addEntry, stripOp, hasOp, parseHistory, loadHistory, saveHistory, MAX, KEY } from './history.js'
 
 const mem = () => {
   const m = new Map()
@@ -21,6 +21,11 @@ describe('history', () => {
   it('去掉末尾运算符', () => {
     expect(stripOp('2+3×')).toBe('2+3')
     expect(stripOp('2+3')).toBe('2+3')
+  })
+  it('只有含运算的式子才记录', () => {
+    for (const e of ['5', '5×', '0.5', '-3', '-3+']) expect(hasOp(stripOp(e))).toBe(false)
+    for (const e of ['2+3', '2+3×', '2-5', '-3+1', '-3×2']) expect(hasOp(stripOp(e))).toBe(true)
+    expect(stripOp('2+3×')).toBe('2+3')
   })
   it('损坏数据退回空列表', () => {
     expect(parseHistory('{bad')).toEqual([])

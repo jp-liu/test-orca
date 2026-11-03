@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { press, initial, ERROR } from './calc.js'
-import { addEntry, stripOp, loadHistory, saveHistory } from './history.js'
+import { addEntry, stripOp, hasOp, loadHistory, saveHistory } from './history.js'
 
 const BUTTONS = [
   ['C', 'C'], ['⌫', 'back'], ['÷', '÷'], ['×', '×'],
@@ -23,8 +23,9 @@ export default function App() {
   useEffect(() => {
     const prev = prevRef.current
     prevRef.current = state
-    if (!prev.done && state.done && state.expr !== ERROR) {
-      setHistory((h) => addEntry(h, stripOp(prev.expr), state.expr))
+    const expr = stripOp(prev.expr)
+    if (!prev.done && state.done && state.expr !== ERROR && hasOp(expr)) {
+      setHistory((h) => addEntry(h, expr, state.expr))
     }
   }, [state])
 

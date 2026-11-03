@@ -9,13 +9,14 @@ const BUTTONS = [
   ['0', '0'], ['.', '.'],
 ]
 
-const KEYMAP = { '*': '×', '/': '÷', Enter: '=', Backspace: 'back', Escape: 'C', c: 'C', C: 'C' }
+const KEYMAP = { '*': '×', '/': '÷', Enter: '=', Backspace: 'back', Escape: 'C', Delete: 'C', c: 'C', C: 'C' }
 
 export default function App() {
   const [state, setState] = useState(initial)
 
   useEffect(() => {
     const onKey = (e) => {
+      if (e.ctrlKey || e.metaKey || e.altKey) return // 保留浏览器/系统快捷键
       const key = KEYMAP[e.key] ?? e.key
       if (!/^[\d.+\-×÷=]$|^C$|^back$/.test(key)) return
       e.preventDefault() // 避免 Enter 再次触发聚焦按钮、/ 触发浏览器查找
